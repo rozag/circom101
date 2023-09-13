@@ -10,8 +10,7 @@ Intro to circom codelab
 2. Rust (needed to install circom):
    [install](https://www.rust-lang.org/tools/install)
 
-3. NPM and Node (needed to install snarkjs):
-   [install](https://nodejs.org/en/download/current)
+3. NPM and Node: [install](https://nodejs.org/en/download/current)
 
 4. Circom: [install](https://docs.circom.io/getting-started/installation/)
 

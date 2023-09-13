@@ -322,3 +322,5 @@ $RECYCLE.BIN/
 # .pnp.*
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,vim,visualstudiocode,emacs,windows,linux,node,yarn
+
+.build/
