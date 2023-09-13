@@ -14,4 +14,7 @@ Intro to circom codelab
 
 4. Circom: [install](https://docs.circom.io/getting-started/installation/)
 
+   **Note:** Look for circom docs
+   [here](https://docs.circom.io/circom-language/signals/)
+
 5. snarkjs: [install](https://github.com/iden3/snarkjs#install-snarkjs)

@@ -1,6 +1,6 @@
 # CircomLib/Circuits
 
-_Note:_ vendored from [circomlib](https://github.com/iden3/circomlib) for
+**Note:** vendored from [circomlib](https://github.com/iden3/circomlib) for
 simpicity.
 
 ## Description
