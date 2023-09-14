@@ -5,30 +5,27 @@ pragma circom 2.1.6;
 // block94: |s_count":66,"fri| ->
 //          [115 95 99 111 117 110 116 34 58 54 54 44 34 102 114 105]
 
-// NOTE: Symbol mapping:
-//   " -> 34
-//   : -> 58
-//   1 -> 49
-//   2 -> 50
-//   3 -> 51
-//   9 -> 57
-//   , -> 44
-//   f -> 102
-//   o -> 111
-//   l -> 108
-//   w -> 119
-//   e -> 101
-//   r -> 114
-//   s -> 115
-//   _ -> 95
-//   c -> 99
-//   u -> 117
-//   n -> 110
-//   t -> 116
-//   6 -> 54
-//   i -> 105
-
 template AtLeastFollowersCnt() {
+
+  var charQuotes =     34; // "
+  var charComma =      44; // ,
+  var charColon =      58; // :
+  var charUnderscore = 95; // _
+
+  var char0 = 48; // 0
+  var char9 = 57; // 9
+
+  var charC =  99; // c
+  var charE = 101; // e
+  var charF = 102; // f
+  var charL = 108; // l
+  var charN = 110; // n
+  var charO = 111; // o
+  var charR = 114; // r
+  var charS = 115; // s
+  var charT = 116; // t
+  var charU = 117; // u
+  var charW = 119; // w
 
   var blockSizeBytes = 16;
   var blocksCnt = 2;
@@ -40,9 +37,10 @@ template AtLeastFollowersCnt() {
 
   signal output hasAtLeastFollowersCnt; // 1 if has >= targetCnt, 0 otherwise
 
-  // NOTE: ./circomlib/comparators.circom/LessThan:
-  //       signal input in[2]; // 2 numbers
-  //       signal output out;  // 1 if in[0] < in[1], 0 otherwise
+  // NOTE: Check out ./circomlib/comparators.circom
+  //   For example, LessThan:
+  //     signal input in[2]; // 2 numbers
+  //     signal output out;  // 1 if in[0] < in[1], 0 otherwise
 
   // TODO: implement
 }
