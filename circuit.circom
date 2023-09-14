@@ -23,6 +23,40 @@ template LimitValueFromTop() {
   out <== out0 + out1;
 }
 
+template RememberDesiredValue() {
+
+  signal input desiredVal;
+  signal input val;
+  signal input rememberVal;
+  signal input forgetVal;
+
+  signal output out;
+
+  component eq = IsEqual();
+  eq.in[0] <== desiredVal;
+  eq.in[1] <== val;
+
+  signal out0 <== eq.out * rememberVal;
+  signal out1 <== (1 - eq.out) * forgetVal;
+  out <== out0 + out1;
+}
+
+template Min() {
+
+  signal input a;
+  signal input b;
+
+  signal output out;
+
+  component lt = LessThan(9); // 8 + 1 to allow 256 (not found marker)
+  lt.in[0] <== a;
+  lt.in[1] <== b;
+
+  signal out0 <== lt.out * a;
+  signal out1 <== (1 - lt.out) * b;
+  out <== out0 + out1;
+}
+
 template ValueStartIndex(dataSize, keySize) {
 
   signal input data[dataSize];
@@ -30,30 +64,53 @@ template ValueStartIndex(dataSize, keySize) {
 
   signal output valueStartIndex;
 
-  signal tmpKeyIdxOnIter[dataSize+1];
-  tmpKeyIdxOnIter[0] <== 0;
+  signal tmp0KeyIdxOnIter[dataSize+1];
+  tmp0KeyIdxOnIter[0] <== 0;
+
+  signal tmp1KeyIdxOnIter[dataSize+1];
+  tmp1KeyIdxOnIter[0] <== 0;
 
   signal keyIdxOnIter[dataSize+1];
   keyIdxOnIter[0] <== 0;
 
-  signal targetIdxOnIter[dataSize];
-  targetIdxOnIter[0] <== -1;
+  signal targetIdxOnIter[dataSize+1];
+  var notFound = 256;
+  targetIdxOnIter[0] <== notFound;
 
   component eq[dataSize];
   component lim[dataSize];
+  component memKey[dataSize];
+  component memTarget[dataSize];
+  component min[dataSize];
 
   for (var i = 0; i < dataSize; i++) {
     eq[i] = IsEqual();
     eq[i].in[0] <== data[i];
     eq[i].in[1] <-- key[keyIdxOnIter[i]];
-    tmpKeyIdxOnIter[i+1] <== eq[i].out * (keyIdxOnIter[i] + 1);
+    tmp0KeyIdxOnIter[i+1] <== eq[i].out * (keyIdxOnIter[i] + 1);
 
     lim[i] = LimitValueFromTop();
     lim[i].max <== keySize;
-    lim[i].val <== tmpKeyIdxOnIter[i+1];
-    keyIdxOnIter[i+1] <== lim[i].out;
+    lim[i].val <== tmp0KeyIdxOnIter[i+1];
+    tmp1KeyIdxOnIter[i+1] <== lim[i].out;
 
-    // TODO:
+    memKey[i] = RememberDesiredValue();
+    memKey[i].desiredVal <== keySize;
+    memKey[i].val <== keyIdxOnIter[i];
+    memKey[i].rememberVal <== keySize;
+    memKey[i].forgetVal <== tmp1KeyIdxOnIter[i+1];
+    keyIdxOnIter[i+1] <== memKey[i].out;
+
+    min[i] = Min();
+    min[i].a <== targetIdxOnIter[i];
+    min[i].b <== i + 1;
+
+    memTarget[i] = RememberDesiredValue();
+    memTarget[i].desiredVal <== keySize;
+    memTarget[i].val <== keyIdxOnIter[i+1];
+    memTarget[i].rememberVal <== min[i].out;
+    memTarget[i].forgetVal <== targetIdxOnIter[i];
+    targetIdxOnIter[i+1] <== memTarget[i].out;
   }
 
   log("keyIdxOnIter:", keyIdxOnIter[0], keyIdxOnIter[1], keyIdxOnIter[2],
@@ -65,25 +122,20 @@ template ValueStartIndex(dataSize, keySize) {
     keyIdxOnIter[23], keyIdxOnIter[24], keyIdxOnIter[25], keyIdxOnIter[26],
     keyIdxOnIter[27], keyIdxOnIter[28], keyIdxOnIter[29], keyIdxOnIter[30],
     keyIdxOnIter[31], keyIdxOnIter[32]);
+  log("targetIdxOnIter:", targetIdxOnIter[0], targetIdxOnIter[1],
+    targetIdxOnIter[2], targetIdxOnIter[3], targetIdxOnIter[4],
+    targetIdxOnIter[5], targetIdxOnIter[6], targetIdxOnIter[7],
+    targetIdxOnIter[8], targetIdxOnIter[9], targetIdxOnIter[10],
+    targetIdxOnIter[11], targetIdxOnIter[12], targetIdxOnIter[13],
+    targetIdxOnIter[14], targetIdxOnIter[15], targetIdxOnIter[16],
+    targetIdxOnIter[17], targetIdxOnIter[18], targetIdxOnIter[19],
+    targetIdxOnIter[20], targetIdxOnIter[21], targetIdxOnIter[22],
+    targetIdxOnIter[23], targetIdxOnIter[24], targetIdxOnIter[25],
+    targetIdxOnIter[26], targetIdxOnIter[27], targetIdxOnIter[28],
+    targetIdxOnIter[29], targetIdxOnIter[30], targetIdxOnIter[31],
+    targetIdxOnIter[32]);
 
-  // func circuitJSONValueStartIdx(blocks []byte) int {
-  // 	key := []byte("followers_count\":")
-  // 	keyIdx := 0
-  // 	for i, b := range blocks {
-  // 		if b != key[keyIdx] {
-  // 			keyIdx = 0
-  // 			continue
-  // 		}
-  //
-  // 		keyIdx++
-  // 		if keyIdx == len(key) {
-  // 			return i + 1
-  // 		}
-  // 	}
-  //
-  // 	return -1
-  // }
-
+  valueStartIndex <== targetIdxOnIter[dataSize];
 }
 
 template AtLeastFollowersCnt() {
@@ -141,6 +193,16 @@ template AtLeastFollowersCnt() {
 
   signal valueStartIndex <==
     ValueStartIndex(dataSizeBytes, keySizeBytes)(data, key);
+  log("valueStartIndex:", valueStartIndex);
+
+  // Checking that valueStartIndex is not 256 (not found marker)
+  var notFound = 256;
+  component leqt = LessThan(9); // 8 + 1 to allow 256 (not found marker)
+  leqt.in[0] <== valueStartIndex;
+  leqt.in[1] <== notFound;
+  1 === leqt.out;
+
+  // TODO: further implementation
 }
 
-component main = AtLeastFollowersCnt();
+component main { public [ targetCnt ] } = AtLeastFollowersCnt();
