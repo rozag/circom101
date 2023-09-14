@@ -67,7 +67,7 @@ template AtLeastFollowersCnt() {
   var dataSizeBytes = blockSizeBytes * blocksCnt;
 
   signal input targetCnt;  // Number, need to have at least that many followers
-  signal input bytes[dataSizeBytes]; // 2 blocks of 16 bytes each
+  signal input data[dataSizeBytes]; // 2 blocks of 16 bytes each
 
   signal output hasAtLeastFollowersCnt; // 1 if has >= targetCnt, 0 otherwise
 
