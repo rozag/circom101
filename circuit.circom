@@ -205,6 +205,48 @@ template ExtractDigitChars() {
     digitChars[29], digitChars[30], digitChars[31]);
 }
 
+template NumberFromDigitChars() {
+
+  var blockSizeBytes = 16;
+  var blocksCnt = 2;
+
+  var dataSizeBytes = blockSizeBytes * blocksCnt;
+
+  signal input digitChars[dataSizeBytes];
+
+  signal output out;
+
+  signal tmpOut0[dataSizeBytes + 1];
+  tmpOut0[0] <== 0;
+  signal tmpOut1[dataSizeBytes + 1];
+  tmpOut1[0] <== 0;
+  signal tmpOut[dataSizeBytes + 1];
+  tmpOut[0] <== 0;
+
+  var char0 = 48; // 0
+
+  component eq[dataSizeBytes];
+  for (var i = 0; i < dataSizeBytes; i++) {
+    eq[i] = IsEqual();
+    eq[i].in[0] <== digitChars[i];
+    eq[i].in[1] <== 0;
+
+    tmpOut0[i+1] <== eq[i].out * tmpOut[i];
+    tmpOut1[i+1] <==
+      (1 - eq[i].out) * (10 * tmpOut[i] + (digitChars[i] - char0));
+    tmpOut[i+1] <== tmpOut0[i+1] + tmpOut1[i+1];
+  }
+
+  log("tmpOut:", tmpOut[0], tmpOut[1], tmpOut[2], tmpOut[3], tmpOut[4],
+    tmpOut[5], tmpOut[6], tmpOut[7], tmpOut[8], tmpOut[9], tmpOut[10],
+    tmpOut[11], tmpOut[12], tmpOut[13], tmpOut[14], tmpOut[15], tmpOut[16],
+    tmpOut[17], tmpOut[18], tmpOut[19], tmpOut[20], tmpOut[21], tmpOut[22],
+    tmpOut[23], tmpOut[24], tmpOut[25], tmpOut[26], tmpOut[27], tmpOut[28],
+    tmpOut[29], tmpOut[30], tmpOut[31]);
+
+  out <== tmpOut[dataSizeBytes];
+}
+
 template AtLeastFollowersCnt() {
 
   var charQuotes =     34; // "
@@ -273,6 +315,10 @@ template AtLeastFollowersCnt() {
   // something like [0, 0, ..., 0, byte('7'), byte('8'), 0, 0, ..., 0]
   signal digitChars[dataSizeBytes] <==
     ExtractDigitChars()(data, valueStartIndex);
+
+  // Parse number from digit chars
+  signal num <== NumberFromDigitChars()(digitChars);
+  log("num:", num);
 
   // TODO: further implementation
 }
