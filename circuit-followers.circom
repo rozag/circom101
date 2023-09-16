@@ -8,6 +8,59 @@ include "./circomlib/gates.circom";
 // block94: |s_count":78,"fri| ->
 //          [115 95 99 111 117 110 116 34 58 55 56 44 34 102 114 105]
 
+// NOTE: hint 1: `if` alternative (you might need this one):
+//
+//   template LimitValueFromTop() {
+//
+//     signal input max;
+//     signal input val;
+//
+//     signal output out;
+//
+//     component gt = GreaterThan(8);
+//     gt.in[0] <== val;
+//     gt.in[1] <== max;
+//
+//     signal out0 <== gt.out * max;
+//     signal out1 <== (1 - gt.out) * val;
+//     out <== out0 + out1;
+//   }
+
+// NOTE: hint 2: working with write-once signals (you might need some modified
+// version of this or just the idea itself):
+//
+// Source: github.com/privacy-scaling-explorations/maci/blob/v1/circuits/...
+//           ...circom/trees/incrementalQuinTree.circom#L29
+//
+//   template QuinSelector(choices) {
+//       signal input in[choices];
+//       signal input index;
+//       signal output out;
+//
+//       // Ensure that index < choices
+//       component lessThan = LessThan(3);
+//       lessThan.in[0] <== index;
+//       lessThan.in[1] <== choices;
+//       lessThan.out === 1;
+//
+//       component calcTotal = CalculateTotal(choices);
+//       component eqs[choices];
+//
+//       // For each item, check whether its index equals the input index.
+//       for (var i = 0; i < choices; i ++) {
+//           eqs[i] = IsEqual();
+//           eqs[i].in[0] <== i;
+//           eqs[i].in[1] <== index;
+//
+//           // eqs[i].out is 1 if the index matches. As such, at most one
+//           // input to calcTotal is not 0.
+//           calcTotal.nums[i] <== eqs[i].out * in[i];
+//       }
+//
+//       // Returns 0 + 0 + ... + item
+//       out <== calcTotal.sum;
+//   }
+
 template AtLeastFollowersCnt() {
 
   var charQuotes =     34; // "
