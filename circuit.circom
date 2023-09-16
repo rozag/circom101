@@ -320,7 +320,14 @@ template AtLeastFollowersCnt() {
   signal num <== NumberFromDigitChars()(digitChars);
   log("num:", num);
 
-  // TODO: further implementation
+  // Final answer
+  component geqt = GreaterEqThan(252);
+  geqt.in[0] <== num;
+  geqt.in[1] <== targetCnt;
+  hasAtLeastFollowersCnt <== geqt.out;
+  log("hasAtLeastFollowersCnt:", hasAtLeastFollowersCnt);
+
+  hasAtLeastFollowersCnt === 1;
 }
 
 component main { public [ targetCnt ] } = AtLeastFollowersCnt();
