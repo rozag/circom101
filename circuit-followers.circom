@@ -1,9 +1,12 @@
 pragma circom 2.1.6;
 
+include "./circomlib/comparators.circom";
+include "./circomlib/gates.circom";
+
 // block93: |":1239,"follower| ->
 //          [34 58 49 50 51 57 44 34 102 111 108 108 111 119 101 114]
-// block94: |s_count":66,"fri| ->
-//          [115 95 99 111 117 110 116 34 58 54 54 44 34 102 114 105]
+// block94: |s_count":78,"fri| ->
+//          [115 95 99 111 117 110 116 34 58 55 56 44 34 102 114 105]
 
 template AtLeastFollowersCnt() {
 
@@ -45,4 +48,4 @@ template AtLeastFollowersCnt() {
   // TODO: implement
 }
 
-component main = AtLeastFollowersCnt();
+component main { public [ targetCnt ] } = AtLeastFollowersCnt();
