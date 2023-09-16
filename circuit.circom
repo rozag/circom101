@@ -1,11 +1,12 @@
 pragma circom 2.1.6;
 
 include "./circomlib/comparators.circom";
+include "./circomlib/gates.circom";
 
 // block93: |":1239,"follower| ->
 //          [34 58 49 50 51 57 44 34 102 111 108 108 111 119 101 114]
-// block94: |s_count":66,"fri| ->
-//          [115 95 99 111 117 110 116 34 58 54 54 44 34 102 114 105]
+// block94: |s_count":78,"fri| ->
+//          [115 95 99 111 117 110 116 34 58 55 56 44 34 102 114 105]
 
 template LimitValueFromTop() {
 
@@ -138,6 +139,72 @@ template ValueStartIndex(dataSize, keySize) {
   valueStartIndex <== targetIdxOnIter[dataSize];
 }
 
+template InIntervalInclusive() {
+
+  signal input val;
+  signal input min;
+  signal input max;
+
+  signal output out; // 1 if val is in [min, max], 0 otherwise
+
+  component leqt = LessEqThan(8);
+  leqt.in[0] <== val;
+  leqt.in[1] <== max;
+
+  component geqt = GreaterEqThan(8);
+  geqt.in[0] <== val;
+  geqt.in[1] <== min;
+
+  out <== AND()(leqt.out, geqt.out);
+}
+
+template ExtractDigitChars() {
+
+  var blockSizeBytes = 16;
+  var blocksCnt = 2;
+
+  var dataSizeBytes = blockSizeBytes * blocksCnt;
+
+  signal input data[dataSizeBytes];
+  signal input valueStartIndex;
+
+  signal output digitChars[dataSizeBytes];
+
+  var char0 = 48; // 0
+  var char9 = 57; // 9
+
+  component geqt[dataSizeBytes];
+  component inInterval[dataSizeBytes];
+  component and[dataSizeBytes];
+  for (var i = 0; i < dataSizeBytes; i++) {
+    // Index is not byte size actually, but we only have 32 bytes, so default
+    // 8 bits is good enough for now.
+    geqt[i] = GreaterEqThan(8);
+    geqt[i].in[0] <== i;
+    geqt[i].in[1] <== valueStartIndex;
+
+    inInterval[i] = InIntervalInclusive();
+    inInterval[i].val <== data[i];
+    inInterval[i].min <== char0;
+    inInterval[i].max <== char9;
+
+    and[i] = AND();
+    and[i].a <== geqt[i].out;
+    and[i].b <== inInterval[i].out;
+
+    digitChars[i] <== and[i].out * data[i];
+  }
+
+  log("digitChars:", digitChars[0], digitChars[1], digitChars[2], digitChars[3],
+    digitChars[4], digitChars[5], digitChars[6], digitChars[7], digitChars[8],
+    digitChars[9], digitChars[10], digitChars[11], digitChars[12],
+    digitChars[13], digitChars[14], digitChars[15], digitChars[16],
+    digitChars[17], digitChars[18], digitChars[19], digitChars[20],
+    digitChars[21], digitChars[22], digitChars[23], digitChars[24],
+    digitChars[25], digitChars[26], digitChars[27], digitChars[28],
+    digitChars[29], digitChars[30], digitChars[31]);
+}
+
 template AtLeastFollowersCnt() {
 
   var charQuotes =     34; // "
@@ -197,10 +264,15 @@ template AtLeastFollowersCnt() {
 
   // Checking that valueStartIndex is not 256 (not found marker)
   var notFound = 256;
-  component leqt = LessThan(9); // 8 + 1 to allow 256 (not found marker)
-  leqt.in[0] <== valueStartIndex;
-  leqt.in[1] <== notFound;
-  1 === leqt.out;
+  component lt = LessThan(9); // 8 + 1 to allow 256 (not found marker)
+  lt.in[0] <== valueStartIndex;
+  lt.in[1] <== notFound;
+  1 === lt.out;
+
+  // Extract digit characters, if our target number is 78, digitChars will hold
+  // something like [0, 0, ..., 0, byte('7'), byte('8'), 0, 0, ..., 0]
+  signal digitChars[dataSizeBytes] <==
+    ExtractDigitChars()(data, valueStartIndex);
 
   // TODO: further implementation
 }
